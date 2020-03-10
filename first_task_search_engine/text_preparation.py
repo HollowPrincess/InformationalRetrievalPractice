@@ -11,8 +11,8 @@ def tokenize(df: pd.DataFrame(columns=["Text"])):
 
 
 def lemmatize(df: pd.DataFrame(columns=["Text"])):
-    lemmatizer = WordNetLemmatizer()
+    lemm = WordNetLemmatizer()
     df["Text"] = df["Text"].apply(
-        lambda tokens_list: [lemmatizer.lemmatize(w) for w in tokens_list]
+        lambda tokens_list: [lemm.lemmatize(w) for w in tokens_list if w != ""]
     )
     return df
