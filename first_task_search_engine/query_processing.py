@@ -1,8 +1,10 @@
 import boolean_search_model
 from collections import deque
+from collections import OrderedDict
 from nltk.stem import WordNetLemmatizer
 import numpy as np
 import os
+import pandas as pd
 import pickle
 import re
 
@@ -30,16 +32,16 @@ def get_postings(word: str) -> dict:
 
 def get_postings_with_query(query: str) -> dict:
     lemm = WordNetLemmatizer()
+    query = re.sub(r"\W", " ", query)
     query = re.sub(r" +", " ", query)
     query = query.lower().split(" ")
-
     query = [lemm.lemmatize(w) for w in query if w != ""]
     query_words = deque(query[::2])
     query_operations = deque(query[1::2])
     query_operations_set = set(np.unique(query_operations))
     if query_operations_set.intersection(operations_set) != query_operations_set:
         print("The query don't match the format.")
-        return 1
+        return {}
 
     multiple_and_postings = []
     empty_postings_in_multi_end = False
@@ -87,3 +89,22 @@ def get_postings_with_query(query: str) -> dict:
                     multiple_and_postings = []
                 break
     return postings_left
+
+
+def return_documents(query: str):
+    query = query.strip()
+    postings = get_postings_with_query(query)  # type:dict
+    if postings:
+        docs_dict = OrderedDict(
+            sorted(postings.items(), key=lambda x: x[1], reverse=True)
+        )
+        docs_ids = np.array(list(docs_dict.keys()), dtype=int)[:5]
+        docs_ranks = np.array(list(docs_dict.values()), dtype=int)[:5]
+        docs = pd.read_csv("data/prepared_dataset.csv", index_col=0)
+        res = docs.iloc[docs_ids].values
+        for elem, docID, rank in zip(res, docs_ids, docs_ranks):
+            print("Document id: ", docID)
+            print("Document rank: ", rank, "\n")
+            print(elem[0])
+    else:
+        print("There are no documents matching this query in questions collection.")
