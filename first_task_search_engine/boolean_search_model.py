@@ -4,11 +4,19 @@ def intersect_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     left_items_iterator = iter(postings_left.items())  # type: iter
     right_items_iterator = iter(postings_right.items())  # type: iter
-    left_key, left_value = next(left_items_iterator)  # types: str, int
-    right_key, right_value = next(right_items_iterator)  # types: str, int
     ans = {}  # type: dict
+    stopped_iterator = False  # type:bool
+    try:
+        left_key, left_value = next(left_items_iterator)  # types: str, int
+    except StopIteration:
+        stopped_iterator = True
 
-    while True:
+    try:
+        right_key, right_value = next(right_items_iterator)  # types: str, int
+    except StopIteration:
+        stopped_iterator = True
+
+    while not stopped_iterator:
         if left_key == right_key:
             ans[left_key] = left_value + right_value
             try:
@@ -32,7 +40,7 @@ def intersect_postings_lists(postings_left: dict, postings_right: dict) -> dict:
 
 def intersect_many_postings_lists(postings_lists: list) -> dict:
     """
-    AND operation for more than two postings lists
+    AND operation for two and more postings lists
     """
     postings_lists.sort(key=len)
     ans = (
@@ -44,16 +52,46 @@ def intersect_many_postings_lists(postings_lists: list) -> dict:
     return ans
 
 
+def get_tail_for_not_stopped_iter(
+    stopped_iterator: iter,
+    left_items_iterator: iter,
+    right_items_iterator: iter,
+    ans: dict,
+    left_key: str,
+    left_value: int,
+) -> dict:
+    if stopped_iterator == left_items_iterator:
+        tail = dict(right_items_iterator)
+    elif stopped_iterator == right_items_iterator:
+        tail = dict(left_items_iterator)
+    if not (left_key in ans.keys()):
+        ans[left_key] = left_value
+
+    if tail:
+        ans.update(tail)
+    return ans
+
+
 def union_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     OR operation
     """
-    left_items_iterator = iter(postings_left.items())  # type: iter
-    right_items_iterator = iter(postings_right.items())  # type: iter
+    left_items_iterator = iter(postings_left.items())
+    right_items_iterator = iter(postings_right.items())
     stopped_iterator = False  # init value for running loop
-    left_key, left_value = next(left_items_iterator)  # types: str, int
-    right_key, right_value = next(right_items_iterator)  # types: str, int
-    ans = {}  # type dict
+    ans = {}  # type:dict
+
+    try:
+        left_key, left_value = next(left_items_iterator)  # types: str, int
+    except StopIteration:
+        stopped_iterator = True
+        ans = postings_right
+
+    try:
+        right_key, right_value = next(right_items_iterator)  # types: str, int
+    except StopIteration:
+        stopped_iterator = True
+        ans = postings_left
 
     while not stopped_iterator:
         if left_key == right_key:
@@ -86,15 +124,14 @@ def union_postings_lists(postings_left: dict, postings_right: dict) -> dict:
                 break
 
     # get tail of not stopped iterator
-    if stopped_iterator == left_items_iterator:
-        tail = dict(right_items_iterator)
-    elif stopped_iterator == right_items_iterator:
-        if not (left_key in ans.keys()):
-            ans[left_key] = left_value
-        tail = dict(left_items_iterator)
-
-    if tail:
-        ans.update(tail)
+    ans = get_tail_for_not_stopped_iter(
+        stopped_iterator,
+        left_items_iterator,
+        right_items_iterator,
+        ans,
+        left_key,
+        left_value,
+    )
     return ans
 
 
@@ -104,12 +141,23 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     left_items_iterator = iter(postings_left.items())  # type:iter
     right_items_iterator = iter(postings_right.items())  # type:iter
-    left_key, left_value = next(left_items_iterator)  # types: str, int
-    right_key, right_value = next(right_items_iterator)  # types: str, int
     ans = {}  # type: dict
+    stopped_iterator = False  # type:bool
+
+    try:
+        left_key, left_value = next(left_items_iterator)  # types: str, int
+    except StopIteration:
+        stopped_iterator = True
+
+    try:
+        right_key, right_value = next(right_items_iterator)  # types: str, int
+    except StopIteration:
+        stopped_iterator = True
+        ans = postings_left
+
     check_tail_in_left_flag = False  # type:bool
 
-    while True:
+    while not stopped_iterator:
         if left_key == right_key:
             try:
                 left_key, left_value = next(left_items_iterator)
