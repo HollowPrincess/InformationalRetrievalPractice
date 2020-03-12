@@ -4,6 +4,10 @@ from polyglot.detect import Detector
 
 
 def get_lang_info(text: str):
+    """
+    File contains questions in different languages.
+    We get only English texts.
+    """
     try:
         lang = Detector(text, quiet=True).language
     except Exception:

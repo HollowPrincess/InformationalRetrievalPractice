@@ -31,6 +31,9 @@ def get_postings(word: str) -> dict:
 
 
 def get_postings_with_query(query: str) -> dict:
+    """
+    This function gets posting list which is a result of operations with words.
+    """
     lemm = WordNetLemmatizer()
     query = re.sub(r"\W", " ", query)
     query = re.sub(r" +", " ", query)
@@ -43,8 +46,8 @@ def get_postings_with_query(query: str) -> dict:
         print("The query don't match the format.")
         return {}
 
-    multiple_and_postings = []
-    empty_postings_in_multi_end = False
+    multiple_and_postings = []  # type:list
+    empty_postings_in_multi_end = False  # type:bool
     if query:
         word_left = query_words.popleft()  # type:str #first word in query
         postings_left = get_postings(word_left)
@@ -68,6 +71,7 @@ def get_postings_with_query(query: str) -> dict:
                         postings_left = boolean_search_model.intersect_many_postings_lists(
                             postings_left, postings_right
                         )
+                        multiple_and_postings = []
                     if postings_right:
                         postings_left = boolean_search_model.subtract_postings_lists(
                             postings_left, postings_right
@@ -81,7 +85,7 @@ def get_postings_with_query(query: str) -> dict:
                     if not (postings_right or postings_left):
                         empty_postings_in_multi_end = True
                         multiple_and_postings = []
-            except IndexError:
+            except IndexError:  # end of a query
                 if multiple_and_postings:
                     postings_left = boolean_search_model.intersect_many_postings_lists(
                         multiple_and_postings
@@ -97,12 +101,13 @@ def return_documents(query: str):
     if postings:
         docs_dict = OrderedDict(
             sorted(postings.items(), key=lambda x: x[1], reverse=True)
-        )
+        )  # sort documents by rank
         docs_ids = np.array(list(docs_dict.keys()), dtype=int)[:5]
         docs_ranks = np.array(list(docs_dict.values()), dtype=int)[:5]
         docs = pd.read_csv("data/prepared_dataset.csv", index_col=0)
         res = docs.iloc[docs_ids].values
         for elem, docID, rank in zip(res, docs_ids, docs_ranks):
+            print("Top 5 documents\n")
             print("Document id: ", docID)
             print("Document rank: ", rank, "\n")
             print(elem[0])

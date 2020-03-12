@@ -13,7 +13,7 @@ from text_preparation import tokenize, lemmatize
 const_size_in_bytes = 1024 * 1024 * 100  # type:int
 
 
-def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)):
+def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> int:
     """
     This function write parts of index from texts blocks in tmp index file.
     First stage of creating index with SPIMI.
@@ -28,7 +28,7 @@ def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)):
     return file_number
 
 
-def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int):
+def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int) -> int:
     """
     This function contains SPIMI algo for buildin index.
     """
@@ -53,7 +53,7 @@ def prepare_line_for_writing(
     preparred_part: defaultdict(list),
     const_size_in_bytes: int,
     files_dict: defaultdict(list) = {},
-):
+) -> [defaultdict(list), defaultdict(list), list, defaultdict(list)]:
     """
     Writing lines in files with fully-prepared index.
     """
@@ -71,6 +71,7 @@ def prepare_line_for_writing(
     if (
         sys.getsizeof(preparred_part) + sys.getsizeof(line_to_write)
     ) > const_size_in_bytes:
+        # dict reaches memory limit
         file_name = "data/separated_index/{}.txt".format(min_term)
         # the first term locates in a next file
         # it will be a name of current file for simplify search
@@ -148,7 +149,6 @@ def merging_tmp_index(file_number: int):
 
 def run_index_prep():
     df = pd.read_csv("./data/prepared_dataset.csv", index_col=0)
-    df = df.iloc[:3]
     df = tokenize(df)
     df = lemmatize(df)
 
