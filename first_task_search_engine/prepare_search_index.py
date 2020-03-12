@@ -161,3 +161,7 @@ def run_index_prep():
         block = df.iloc[block_num * block_size : (block_num + 1) * block_size]
         file_number = SPIMI_invert(block, file_number)
     merging_tmp_index(file_number)
+
+
+if __name__ == "__main__":
+    run_index_prep()
