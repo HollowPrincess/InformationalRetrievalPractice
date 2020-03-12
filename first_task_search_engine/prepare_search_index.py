@@ -126,7 +126,7 @@ def merging_tmp_index(file_number: int):
                 readed_dict, preparred_part, const_size_in_bytes, files_dict
             )
 
-    # write tails in dicts whch caused by not reaching memory limit for writing:
+    # write tails in dicts which caused by not reaching memory limit for writing:
     while (len(readed_dict.keys()) > 0) | (len(preparred_part.keys()) > 0):
         if len(readed_dict.keys()) > 0:
             (
@@ -138,9 +138,9 @@ def merging_tmp_index(file_number: int):
                 readed_dict, preparred_part, const_size_in_bytes
             )
         else:
-            min_term = min(preparred_part.keys())
+            max_term = max(preparred_part.keys())
 
-            file_name = "data/separated_index/{}.txt".format(min_term)
+            file_name = "data/separated_index/{}.txt".format(max_term)
             with open(file_name, "wb") as handle:
                 pickle.dump(preparred_part, handle)
             preparred_part = defaultdict(list)
