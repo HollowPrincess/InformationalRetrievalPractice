@@ -9,7 +9,7 @@ import pickle
 import re
 
 operations_set = set(["and", "or", "not", "&", "|", "~"])
-const_size_in_bytes = 1024 * 1024 * 100  # type:int #memory limit
+const_size_in_bytes = 1024 * 1024 * 10  # type:int #memory limit
 files = os.listdir("data/separated_index")  # type:list
 index_slices_words = [word[:-4] for word in files]  # type:list
 

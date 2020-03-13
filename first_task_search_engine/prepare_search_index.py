@@ -10,7 +10,7 @@ import pickle
 import sys
 from text_preparation import tokenize, lemmatize
 
-const_size_in_bytes = 1024 * 1024 * 100  # type:int
+const_size_in_bytes = 1024 * 1024 * 10  # type:int
 
 
 def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> int:
@@ -152,7 +152,7 @@ def run_index_prep():
     df = tokenize(df)
     df = lemmatize(df)
 
-    # how many documents prepare in ome time:
+    # how many documents prepare in one time:
     block_size = 10000  # type:int
     # var for naming files with tmp index:
     file_number = 1  # type:int
