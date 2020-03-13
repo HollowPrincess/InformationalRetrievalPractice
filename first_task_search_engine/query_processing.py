@@ -28,7 +28,7 @@ def get_postings(word: str) -> dict:
             file_name = "data/separated_index/{}.txt".format(index_word)
             with open(file_name, "rb", buffering=const_size_in_bytes) as index_file:
                 data = pickle.load(index_file)
-                if word in data.keys():
+                if word in data:
                     postings = data[word]
             break
     return postings

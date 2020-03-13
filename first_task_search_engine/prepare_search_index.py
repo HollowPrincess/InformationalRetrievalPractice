@@ -3,11 +3,11 @@ from collections import Counter
 import functools
 import math
 import operator
-import ndjson
 import os
 import pandas as pd
 import pickle
 import sys
+import ndjson
 from text_preparation import tokenize, lemmatize
 
 const_size_in_bytes = 1024 * 1024 * 1  # type:int
@@ -43,7 +43,7 @@ def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int) -> int
                 # before we reach limit of memory
                 file_number = write_dict_to_file(file_number, dict_for_index)
                 dict_for_index = defaultdict(list)
-    if len(dict_for_index.keys()) > 0:
+    if dict_for_index:
         # writing a tail of current index part
         file_number = write_dict_to_file(file_number, dict_for_index)
     return file_number
@@ -52,7 +52,7 @@ def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int) -> int
 def prepare_line_for_writing(
     readed_dict: defaultdict(list),
     preparred_part: defaultdict(list),
-    files_dict: defaultdict(list) = {},
+    files_dict: defaultdict(list),
 ) -> [defaultdict(list), defaultdict(list), list, defaultdict(list)]:
     """
     Writing lines in files with fully-prepared index.
@@ -60,7 +60,7 @@ def prepare_line_for_writing(
     min_term = min(readed_dict.keys())  # get first term in a queue
     term_postings = readed_dict.pop(min_term)  # get term posting list
 
-    if len(files_dict) > 0:
+    if files_dict:
         files_to_read = files_dict.pop(
             min_term
         )  # get files pointers for future reading
@@ -103,7 +103,7 @@ def merging_tmp_index(file_number: int):
     files_to_read = files.copy()  # pointers on files for loop
     files_dict = defaultdict(list)
     # pointers on files which contains terms from keys
-    while len(files) > 0:  # while reading any file
+    while files:  # while reading any file
         for file in files_to_read:
             if not file.closed:
                 # get new term from file if it is in reading mode:
@@ -118,25 +118,23 @@ def merging_tmp_index(file_number: int):
                     if os.path.exists(file.name):
                         os.remove(file.name)  # drop tmp index file
 
-        if len(readed_dict.keys()) > 0:
+        if readed_dict:
             (
                 readed_dict,
                 preparred_part,
                 files_to_read,
                 files_dict,
-            ) = prepare_line_for_writing(
-                readed_dict, preparred_part, const_size_in_bytes, files_dict
-            )
+            ) = prepare_line_for_writing(readed_dict, preparred_part, files_dict)
 
     # write tails in dicts which caused by not reaching memory limit for writing:
-    while (len(readed_dict.keys()) > 0) | (len(preparred_part.keys())) > 0:
-        if len(readed_dict.keys()) > 0:
+    while readed_dict | preparred_part:
+        if readed_dict:
             (
                 readed_dict,
                 preparred_part,
                 files_to_read,
                 files_dict,
-            ) = prepare_line_for_writing(readed_dict, preparred_part)
+            ) = prepare_line_for_writing(readed_dict, preparred_part, files_dict)
         else:
             max_term = max(preparred_part.keys())
 
