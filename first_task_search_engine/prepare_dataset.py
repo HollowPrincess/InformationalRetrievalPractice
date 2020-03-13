@@ -19,7 +19,7 @@ def run_prepare_dataset():
     df = pd.read_csv(
         "./data/Questions.csv", encoding="iso-8859-1", usecols=["Title", "Body"]
     )
-    df = df.iloc[:60000]
+    df = df.iloc[:200000]
 
     # concat title and body in one field
     df["Text"] = df["Title"] + " " + df["Body"]

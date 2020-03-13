@@ -47,7 +47,7 @@ def intersect_many_postings_lists(postings_lists: list) -> dict:
     # pop the longest element from list of posting_lists
     postings_lists.sort(key=len)
     ans = postings_lists.pop()  # type: dict
-    while (len(ans) > 0) and (len(postings_lists) > 0):
+    while ans and postings_lists:
         poped = postings_lists.pop()  # type: dict
         ans = intersect_postings_lists(ans, poped)
     return ans
@@ -69,7 +69,7 @@ def get_tail_for_not_stopped_iter(
         tail = dict(right_items_iterator)
     elif stopped_iterator == right_items_iterator:
         tail = dict(left_items_iterator)
-    if not (left_key in ans.keys()):
+    if not (left_key in ans):
         ans[left_key] = left_value
 
     if tail:
@@ -190,10 +190,10 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
                 break
     # get tail of left postings if right postings ended
     tail = dict(left_items_iterator)
-    if (not (left_key in ans.keys())) and check_tail_in_left_flag:
-        ans[
-            left_key
-        ] = left_value  # we read item from left dict and after that right dict was stopped
+    if (not (left_key in ans)) and check_tail_in_left_flag:
+        ans[left_key] = left_value
+        # we read item from left dict
+        # and after that right dict was stopped
     if tail:
         ans.update(tail)
     return ans

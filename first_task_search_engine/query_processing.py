@@ -1,4 +1,8 @@
-import boolean_search_model
+from boolean_search_model import (
+    intersect_many_postings_lists,
+    union_postings_lists,
+    subtract_postings_lists,
+)
 from collections import deque
 from collections import OrderedDict
 from nltk.stem import WordNetLemmatizer
@@ -9,8 +13,8 @@ import pickle
 import re
 
 operations_set = set(["and", "or", "not", "&", "|", "~"])
-const_size_in_bytes = 1024 * 1024 * 10  # type:int #memory limit
-files = os.listdir("data/separated_index")  # type:list
+const_size_in_bytes = 1024 * 1024 * 1  # type:int #memory limit
+files = sorted(os.listdir("data/separated_index"))  # type:list
 index_slices_words = [word[:-4] for word in files]  # type:list
 
 
@@ -58,22 +62,22 @@ def get_postings_with_query(query: str) -> dict:
                 postings_right = get_postings(word_right)
                 if oper in ["or", "|"]:
                     if multiple_and_postings:
-                        postings_left = boolean_search_model.intersect_many_postings_lists(
+                        postings_left = intersect_many_postings_lists(
                             multiple_and_postings
                         )
                         multiple_and_postings = []
                     if postings_right:
-                        postings_left = boolean_search_model.union_postings_lists(
+                        postings_left = union_postings_lists(
                             postings_left, postings_right
                         )
                 elif oper in ["not", "~"]:
                     if multiple_and_postings:
-                        postings_left = boolean_search_model.intersect_many_postings_lists(
+                        postings_left = intersect_many_postings_lists(
                             postings_left, postings_right
                         )
                         multiple_and_postings = []
                     if postings_right:
-                        postings_left = boolean_search_model.subtract_postings_lists(
+                        postings_left = subtract_postings_lists(
                             postings_left, postings_right
                         )
                 else:
@@ -87,9 +91,7 @@ def get_postings_with_query(query: str) -> dict:
                         multiple_and_postings = []
             except IndexError:  # end of a query
                 if multiple_and_postings:
-                    postings_left = boolean_search_model.intersect_many_postings_lists(
-                        multiple_and_postings
-                    )
+                    postings_left = intersect_many_postings_lists(multiple_and_postings)
                     multiple_and_postings = []
                 break
     return postings_left
@@ -98,6 +100,7 @@ def get_postings_with_query(query: str) -> dict:
 def return_documents(query: str):
     query = query.strip()
     postings = get_postings_with_query(query)  # type:dict
+
     if postings:
         docs_dict = OrderedDict(
             sorted(postings.items(), key=lambda x: x[1], reverse=True)
@@ -105,11 +108,15 @@ def return_documents(query: str):
         docs_ids = np.array(list(docs_dict.keys()), dtype=int)[:5]
         docs_ranks = np.array(list(docs_dict.values()), dtype=int)[:5]
         docs = pd.read_csv("data/prepared_dataset.csv", index_col=0)
-        res = docs.iloc[docs_ids].values
+
+        res = docs.loc[docs_ids].values
+        print("Top {} documents: \n".format(len(docs_ids)))
         for elem, docID, rank in zip(res, docs_ids, docs_ranks):
-            print("Top 5 documents\n")
             print("Document id: ", docID)
             print("Document rank: ", rank, "\n")
             print(elem[0])
     else:
-        print("There are no documents matching this query in questions collection.")
+        print(
+            "There are no documents matching this query\
+            in questions collection."
+        )

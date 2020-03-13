@@ -2,15 +2,15 @@ from collections import defaultdict
 from collections import Counter
 import functools
 import math
-import ndjson
 import operator
+import ndjson
 import os
 import pandas as pd
 import pickle
 import sys
 from text_preparation import tokenize, lemmatize
 
-const_size_in_bytes = 1024 * 1024 * 10  # type:int
+const_size_in_bytes = 1024 * 1024 * 1  # type:int
 
 
 def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> int:
@@ -23,7 +23,8 @@ def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> i
         dict_for_index[key] = term_freqs
     dict_for_index = sorted(dict_for_index.items())
     with open("data/index_blocks/index_file{}.txt".format(str(file_number)), "w") as f:
-        ndjson.dump(dict_for_index, f)  # write as json for comfortable reading lines
+        ndjson.dump(dict_for_index, f)
+        # write as json for comfortable reading lines
         file_number += 1  # this var is for naming tmp index files
     return file_number
 
@@ -51,7 +52,6 @@ def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int) -> int
 def prepare_line_for_writing(
     readed_dict: defaultdict(list),
     preparred_part: defaultdict(list),
-    const_size_in_bytes: int,
     files_dict: defaultdict(list) = {},
 ) -> [defaultdict(list), defaultdict(list), list, defaultdict(list)]:
     """
@@ -93,7 +93,7 @@ def merging_tmp_index(file_number: int):
         open(
             "data/index_blocks/index_file{}.txt".format(str(i)),
             "r",
-            buffering=math.floor(const_size_in_bytes / (file_number - 1)),
+            buffering=math.floor(const_size_in_bytes / file_number),
         )
         for i in range(1, file_number)
     ]
@@ -101,7 +101,8 @@ def merging_tmp_index(file_number: int):
     readed_dict = defaultdict(list)  # queue of terms and postings
     preparred_part = defaultdict(list)  # queue of terms for writing
     files_to_read = files.copy()  # pointers on files for loop
-    files_dict = defaultdict(list)  # pointers on files which contains terms from keys
+    files_dict = defaultdict(list)
+    # pointers on files which contains terms from keys
     while len(files) > 0:  # while reading any file
         for file in files_to_read:
             if not file.closed:
@@ -128,16 +129,14 @@ def merging_tmp_index(file_number: int):
             )
 
     # write tails in dicts which caused by not reaching memory limit for writing:
-    while (len(readed_dict.keys()) > 0) | (len(preparred_part.keys()) > 0):
+    while (len(readed_dict.keys()) > 0) | (len(preparred_part.keys())) > 0:
         if len(readed_dict.keys()) > 0:
             (
                 readed_dict,
                 preparred_part,
                 files_to_read,
                 files_dict,
-            ) = prepare_line_for_writing(
-                readed_dict, preparred_part, const_size_in_bytes
-            )
+            ) = prepare_line_for_writing(readed_dict, preparred_part)
         else:
             max_term = max(preparred_part.keys())
 
@@ -157,7 +156,7 @@ def run_index_prep():
     # var for naming files with tmp index:
     file_number = 1  # type:int
 
-    for block_num in range(math.ceil(df.shape[0] / block_size)):
+    for block_num in range(int(math.ceil(df.shape[0] / block_size))):
         block = df.iloc[block_num * block_size : (block_num + 1) * block_size]
         file_number = SPIMI_invert(block, file_number)
     merging_tmp_index(file_number)
