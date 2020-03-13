@@ -4,7 +4,6 @@ from boolean_search_model import (
     subtract_postings_lists,
 )
 from collections import deque
-from collections import OrderedDict
 from nltk.stem import WordNetLemmatizer
 import numpy as np
 import os
@@ -12,17 +11,18 @@ import pandas as pd
 import pickle
 import re
 
+TOP_DOCS_NUMBER: int = 5
 operations_set = set(["and", "or", "not", "&", "|", "~"])
-const_size_in_bytes = 1024 * 1024 * 1  # type:int #memory limit
-files = sorted(os.listdir("data/separated_index"))  # type:list
-index_slices_words = [word[:-4] for word in files]  # type:list
+const_size_in_bytes: int = 1024 * 1024 * 1  # memory limit
+files: list = sorted(os.listdir("data/separated_index"))
+index_slices_words: list = [word[:-4] for word in files]
 
 
 def get_postings(word: str) -> dict:
     """
     This function gets posting list for a word from the index
     """
-    postings = {}
+    postings: dict = {}
     for index_word in index_slices_words:
         if word < index_word:
             file_name = "data/separated_index/{}.txt".format(index_word)
@@ -50,15 +50,15 @@ def get_postings_with_query(query: str) -> dict:
         print("The query don't match the format.")
         return {}
 
-    multiple_and_postings = []  # type:list
-    empty_postings_in_multi_end = False  # type:bool
+    multiple_and_postings: list = []
+    empty_postings_in_multi_end: bool = False
     if query:
-        word_left = query_words.popleft()  # type:str #first word in query
+        word_left: str = query_words.popleft()  # first word in query
         postings_left = get_postings(word_left)
         while True:
             try:
-                oper = query_operations.popleft()  # type:str
-                word_right = query_words.popleft()  # type:str
+                oper: str = query_operations.popleft()
+                word_right: str = query_words.popleft()
                 postings_right = get_postings(word_right)
                 if oper in ["or", "|"]:
                     if multiple_and_postings:
@@ -99,14 +99,13 @@ def get_postings_with_query(query: str) -> dict:
 
 def return_documents(query: str):
     query = query.strip()
-    postings = get_postings_with_query(query)  # type:dict
+    postings: dict = get_postings_with_query(query)
 
     if postings:
-        docs_dict = OrderedDict(
-            sorted(postings.items(), key=lambda x: x[1], reverse=True)
-        )  # sort documents by rank
-        docs_ids = np.array(list(docs_dict.keys()), dtype=int)[:5]
-        docs_ranks = np.array(list(docs_dict.values()), dtype=int)[:5]
+        docs_dict = dict(sorted(postings.items(), key=lambda x: x[1], reverse=True))
+        # sort documents by rank
+        docs_ids = np.array(list(docs_dict.keys()), dtype=int)[:TOP_DOCS_NUMBER]
+        docs_ranks = np.array(list(docs_dict.values()), dtype=int)[:TOP_DOCS_NUMBER]
         docs = pd.read_csv("data/prepared_dataset.csv", index_col=0)
 
         res = docs.loc[docs_ids].values

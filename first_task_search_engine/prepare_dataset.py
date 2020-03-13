@@ -1,21 +1,25 @@
 import numpy as np
 import pandas as pd
 from polyglot.detect import Detector
+from polyglot.detect.base import Language
+from polyglot.detect.base import UnknownLanguage
+from typing import Union
+from pycld2 import error
 
 
-def get_lang_info(text: str):
+def get_lang_info(text: str) -> Union[Language, "float"]:
     """
     File contains questions in different languages.
     We get only English texts.
     """
     try:
         lang = Detector(text, quiet=True).language
-    except Exception:
+    except (error, UnknownLanguage):
         lang = np.nan
     return lang
 
 
-def run_prepare_dataset():
+def run_prepare_dataset() -> pd.DataFrame(columns=["Text"]):
     df = pd.read_csv(
         "data/Questions.csv", encoding="iso-8859-1", usecols=["Title", "Body"]
     )
@@ -33,8 +37,10 @@ def run_prepare_dataset():
 
     df.query('confidence > 90 and lang == "английский"', inplace=True)
     df.drop(columns=["lang_info", "lang", "confidence"], inplace=True)
-    df.to_csv("./data/prepared_dataset.csv")
+    # df.to_csv("./data/prepared_dataset.csv")
+    return df
 
 
 if __name__ == "__main__":
-    run_prepare_dataset()
+    df = run_prepare_dataset()
+    df.to_csv("./data/prepared_dataset.csv")

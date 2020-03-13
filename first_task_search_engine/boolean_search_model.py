@@ -6,6 +6,8 @@ def intersect_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     right_items_iterator = iter(postings_right.items())  # type: iter
     ans = {}  # type: dict
     stopped_iterator = False  # type:bool
+    left_key = ""
+    left_value = -1
 
     # read first items from postings lists:
     try:
@@ -85,6 +87,8 @@ def union_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     right_items_iterator = iter(postings_right.items())
     stopped_iterator = False  # init value for running loop
     ans = {}  # type:dict
+    left_key = ""
+    left_value = -1
 
     # read first items from postings lists:
     try:
@@ -145,6 +149,8 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     NOT operation
     """
+    left_key = ""
+    left_value = -1
     left_items_iterator = iter(postings_left.items())  # type:iter
     right_items_iterator = iter(postings_right.items())  # type:iter
     ans = {}  # type: dict

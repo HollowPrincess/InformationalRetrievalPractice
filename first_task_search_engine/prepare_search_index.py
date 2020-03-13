@@ -10,7 +10,7 @@ import sys
 import ndjson
 from text_preparation import tokenize, lemmatize
 
-const_size_in_bytes = 1024 * 1024 * 1  # type:int
+const_size_in_bytes: int = 1024 * 1024 * 1
 
 
 def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> int:
@@ -150,9 +150,9 @@ def run_index_prep():
     df = lemmatize(df)
 
     # how many documents prepare in one time:
-    block_size = 10000  # type:int
+    block_size: int = 10000
     # var for naming files with tmp index:
-    file_number = 1  # type:int
+    file_number: int = 1
 
     for block_num in range(int(math.ceil(df.shape[0] / block_size))):
         block = df.iloc[block_num * block_size : (block_num + 1) * block_size]

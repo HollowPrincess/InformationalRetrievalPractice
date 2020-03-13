@@ -14,7 +14,7 @@ def run_app():
     print("Сase is not important.")
     print()
     print("Please, write your query:")
-    query = input()
+    query: str = input()
     print()
     return_documents(query)
 
