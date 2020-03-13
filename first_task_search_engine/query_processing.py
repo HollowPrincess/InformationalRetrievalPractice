@@ -104,11 +104,15 @@ def return_documents(query: str):
     if postings:
         docs_dict = dict(sorted(postings.items(), key=lambda x: x[1], reverse=True))
         # sort documents by rank
-        docs_ids = np.array(list(docs_dict.keys()), dtype=int)[:TOP_DOCS_NUMBER]
+
+        docs_ids = np.array(list(docs_dict.keys()), dtype=int)
+        print("Documents num:", len(docs_ids))
+        docs_ids = docs_ids[:TOP_DOCS_NUMBER]
         docs_ranks = np.array(list(docs_dict.values()), dtype=int)[:TOP_DOCS_NUMBER]
         docs = pd.read_csv("data/prepared_dataset.csv", index_col=0)
 
         res = docs.loc[docs_ids].values
+
         print("Top {} documents: \n".format(len(docs_ids)))
         for elem, docID, rank in zip(res, docs_ids, docs_ranks):
             print("Document id: ", docID)

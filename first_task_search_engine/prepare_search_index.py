@@ -127,7 +127,7 @@ def merging_tmp_index(file_number: int):
             ) = prepare_line_for_writing(readed_dict, preparred_part, files_dict)
 
     # write tails in dicts which caused by not reaching memory limit for writing:
-    while readed_dict | preparred_part:
+    while len(readed_dict) > 0 | len(preparred_part) > 0:
         if readed_dict:
             (
                 readed_dict,
