@@ -4,16 +4,18 @@ import functools
 import math
 import operator
 import os
-import pandas as pd
 import pickle
 import sys
+import pandas as pd
 import ndjson
 from text_preparation import tokenize, lemmatize
 
 const_size_in_bytes: int = 1024 * 1024 * 1
 
 
-def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> int:
+def write_dict_to_file(
+    file_number: int, dict_for_index: defaultdict(list)
+) -> int:
     """
     This function write parts of index from texts blocks in tmp index file.
     First stage of creating index with SPIMI.
@@ -22,14 +24,18 @@ def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> i
         term_freqs = Counter(dict_for_index[key])  # count terms freqs in docs
         dict_for_index[key] = term_freqs
     dict_for_index: dict = sorted(dict_for_index.items())
-    with open("data/index_blocks/index_file{}.txt".format(str(file_number)), "w") as f:
+    with open(
+        "data/index_blocks/index_file{}.txt".format(str(file_number)), "w"
+    ) as f:
         ndjson.dump(dict_for_index, f)
         # write as json for comfortable reading lines
         file_number += 1  # this var is for naming tmp index files
     return file_number
 
 
-def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int) -> int:
+def SPIMI_invert(
+    block: pd.DataFrame(columns=["Text"]), file_number: int
+) -> int:
     """
     This function contains SPIMI algo for buildin index.
     """
@@ -100,8 +106,12 @@ def merging_tmp_index(file_number: int):
         for i in range(1, file_number)
     ]
 
-    readed_dict: defaultdict(list) = defaultdict(list)  # queue of terms and postings
-    preparred_part: defaultdict(list) = defaultdict(list)  # queue of terms for writing
+    readed_dict: defaultdict(list) = defaultdict(
+        list
+    )  # queue of terms and postings
+    preparred_part: defaultdict(list) = defaultdict(
+        list
+    )  # queue of terms for writing
     files_to_read: list = files.copy()  # pointers on files for loop
     files_dict: defaultdict(list) = defaultdict(list)
     # pointers on files which contains terms from keys
@@ -126,9 +136,12 @@ def merging_tmp_index(file_number: int):
                 preparred_part,
                 files_to_read,
                 files_dict,
-            ) = prepare_line_for_writing(readed_dict, preparred_part, files_dict)
+            ) = prepare_line_for_writing(
+                readed_dict, preparred_part, files_dict
+            )
 
-    # write tails in dicts which caused by not reaching memory limit for writing:
+    # write tails in dicts which caused by
+    # not reaching memory limit for writing:
     while len(readed_dict) > 0 | len(preparred_part) > 0:
         if readed_dict:
             (
@@ -136,7 +149,9 @@ def merging_tmp_index(file_number: int):
                 preparred_part,
                 files_to_read,
                 files_dict,
-            ) = prepare_line_for_writing(readed_dict, preparred_part, files_dict)
+            ) = prepare_line_for_writing(
+                readed_dict, preparred_part, files_dict
+            )
         else:
             max_term = max(preparred_part.keys())
 
@@ -166,6 +181,6 @@ def run_index_prep():
 if __name__ == "__main__":
     for folder in ["data/index_blocks", "data/separated_index"]:
         if not os.path.isdir(folder):
-            os.mkdir(folder)
+            os.makedirs(folder)
 
     run_index_prep()

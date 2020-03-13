@@ -1,4 +1,6 @@
-def intersect_postings_lists(postings_left: dict, postings_right: dict) -> dict:
+def intersect_postings_lists(
+    postings_left: dict, postings_right: dict
+) -> dict:
     """
     AND operation for two postings lists
     """
@@ -74,9 +76,9 @@ def get_tail_for_not_stopped_iter(
     elif stopped_iterator == right_items_iterator:
         tail: dict = dict(left_items_iterator)
 
-    if not (left_key in ans):
+    if left_key not in ans:
         ans[left_key] = left_value
-    if not (right_key in ans):
+    if right_key not in ans:
         ans[right_key] = right_value
 
     if tail:
@@ -203,7 +205,7 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
                 break
     # get tail of left postings if right postings ended
     tail: dict = dict(left_items_iterator)
-    if (not (left_key in ans)) and check_tail_in_left_flag:
+    if (left_key not in ans) and check_tail_in_left_flag:
         ans[left_key] = left_value
         # we read item from left dict
         # and after that right dict was stopped
