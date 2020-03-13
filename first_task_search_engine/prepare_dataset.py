@@ -19,12 +19,9 @@ def get_lang_info(text: str) -> Union[Language, "float"]:
     return lang
 
 
-def run_prepare_dataset() -> pd.DataFrame(columns=["Text"]):
-    df = pd.read_csv(
-        "data/Questions.csv", encoding="iso-8859-1", usecols=["Title", "Body"]
-    )
-    df = df.iloc[:200000]
-
+def run_prepare_dataset(
+    df: pd.DataFrame(columns=["Title", "Body"])
+) -> pd.DataFrame(columns=["Text"]):
     # concat title and body in one field
     df["Text"] = df["Title"] + " " + df["Body"]
     df.drop(columns=["Title", "Body"], inplace=True)
@@ -37,10 +34,22 @@ def run_prepare_dataset() -> pd.DataFrame(columns=["Text"]):
 
     df.query('confidence > 90 and lang == "английский"', inplace=True)
     df.drop(columns=["lang_info", "lang", "confidence"], inplace=True)
-    # df.to_csv("./data/prepared_dataset.csv")
+
     return df
 
 
 if __name__ == "__main__":
-    df = run_prepare_dataset()
-    df.to_csv("./data/prepared_dataset.csv")
+    with open("data/prepared_dataset.csv", "w") as prep_file:
+        for chunk, counter in zip(
+            pd.read_csv(
+                "data/Questions.csv",
+                encoding="iso-8859-1",
+                usecols=["Title", "Body"],
+                chunksize=10000,
+            ),
+            range(20),
+        ):
+            chunk: pd.DataFrame(columns=["Text"]) = run_prepare_dataset(chunk)
+            chunk.to_csv(prep_file, header=None)
+            if counter == 19:
+                break

@@ -21,7 +21,7 @@ def write_dict_to_file(file_number: int, dict_for_index: defaultdict(list)) -> i
     for key in dict_for_index.keys():
         term_freqs = Counter(dict_for_index[key])  # count terms freqs in docs
         dict_for_index[key] = term_freqs
-    dict_for_index = sorted(dict_for_index.items())
+    dict_for_index: dict = sorted(dict_for_index.items())
     with open("data/index_blocks/index_file{}.txt".format(str(file_number)), "w") as f:
         ndjson.dump(dict_for_index, f)
         # write as json for comfortable reading lines
@@ -33,7 +33,7 @@ def SPIMI_invert(block: pd.DataFrame(columns=["Text"]), file_number: int) -> int
     """
     This function contains SPIMI algo for buildin index.
     """
-    dict_for_index = defaultdict(list)
+    dict_for_index: defaultdict(list) = defaultdict(list)
     for docID, terms_list in block.iterrows():
         for term in terms_list.values[0]:
             if sys.getsizeof(dict_for_index) < const_size_in_bytes:
@@ -57,22 +57,24 @@ def prepare_line_for_writing(
     """
     Writing lines in files with fully-prepared index.
     """
-    min_term = min(readed_dict.keys())  # get first term in a queue
-    term_postings = readed_dict.pop(min_term)  # get term posting list
+    min_term: str = min(readed_dict.keys())  # get first term in a queue
+    term_postings: list = readed_dict.pop(min_term)  # get term posting list
 
     if files_dict:
         files_to_read = files_dict.pop(
             min_term
         )  # get files pointers for future reading
     # merging terms postings lists with frequnces:
-    term_postings = dict(functools.reduce(operator.add, map(Counter, term_postings)))
+    term_postings: dict = dict(
+        functools.reduce(operator.add, map(Counter, term_postings))
+    )
 
-    line_to_write = {min_term: term_postings}
+    line_to_write: dict = {min_term: term_postings}
     if (
         sys.getsizeof(preparred_part) + sys.getsizeof(line_to_write)
     ) > const_size_in_bytes:
         # dict reaches memory limit
-        file_name = "data/separated_index/{}.txt".format(min_term)
+        file_name: str = "data/separated_index/{}.txt".format(min_term)
         # the first term locates in a next file
         # it will be a name of current file for simplify search
         with open(file_name, "wb") as handle:
@@ -85,11 +87,11 @@ def prepare_line_for_writing(
 
 def merging_tmp_index(file_number: int):
     # clean dir for index files:
-    index_parts = os.listdir("data/separated_index")
+    index_parts: list = os.listdir("data/separated_index")
     for file in index_parts:
         os.remove("data/separated_index/" + file)
     # open files with tmp index from first stage:
-    files = [
+    files: list = [
         open(
             "data/index_blocks/index_file{}.txt".format(str(i)),
             "r",
@@ -98,10 +100,10 @@ def merging_tmp_index(file_number: int):
         for i in range(1, file_number)
     ]
 
-    readed_dict = defaultdict(list)  # queue of terms and postings
-    preparred_part = defaultdict(list)  # queue of terms for writing
-    files_to_read = files.copy()  # pointers on files for loop
-    files_dict = defaultdict(list)
+    readed_dict: defaultdict(list) = defaultdict(list)  # queue of terms and postings
+    preparred_part: defaultdict(list) = defaultdict(list)  # queue of terms for writing
+    files_to_read: list = files.copy()  # pointers on files for loop
+    files_dict: defaultdict(list) = defaultdict(list)
     # pointers on files which contains terms from keys
     while files:  # while reading any file
         for file in files_to_read:
@@ -145,20 +147,25 @@ def merging_tmp_index(file_number: int):
 
 
 def run_index_prep():
-    df = pd.read_csv("./data/prepared_dataset.csv", index_col=0)
-    df = tokenize(df)
-    df = lemmatize(df)
-
-    # how many documents prepare in one time:
-    block_size: int = 10000
     # var for naming files with tmp index:
     file_number: int = 1
 
-    for block_num in range(int(math.ceil(df.shape[0] / block_size))):
-        block = df.iloc[block_num * block_size : (block_num + 1) * block_size]
-        file_number = SPIMI_invert(block, file_number)
+    for chunk in pd.read_csv(
+        "data/prepared_dataset.csv",
+        index_col=0,
+        header=None,
+        chunksize=10000,
+        names=["Text"],
+    ):
+        chunk: pd.DataFrame(columns=["Text"]) = tokenize(chunk)
+        chunk = lemmatize(chunk)
+        file_number = SPIMI_invert(chunk, file_number)
     merging_tmp_index(file_number)
 
 
 if __name__ == "__main__":
+    for folder in ["data/index_blocks", "data/separated_index"]:
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+
     run_index_prep()

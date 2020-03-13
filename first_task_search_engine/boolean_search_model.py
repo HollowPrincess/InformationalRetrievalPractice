@@ -2,21 +2,21 @@ def intersect_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     AND operation for two postings lists
     """
-    left_items_iterator = iter(postings_left.items())  # type: iter
-    right_items_iterator = iter(postings_right.items())  # type: iter
-    ans = {}  # type: dict
-    stopped_iterator = False  # type:bool
-    left_key = ""
-    left_value = -1
+    left_items_iterator: iter = iter(postings_left.items())
+    right_items_iterator: iter = iter(postings_right.items())
+    ans: dict = {}
+    stopped_iterator: bool = False
+    left_key: str = ""
+    left_value: int = -1
 
     # read first items from postings lists:
     try:
-        left_key, left_value = next(left_items_iterator)  # types: str, int
+        left_key, left_value = next(left_items_iterator)
     except StopIteration:
         stopped_iterator = True
 
     try:
-        right_key, right_value = next(right_items_iterator)  # types: str, int
+        right_key, right_value = next(right_items_iterator)
     except StopIteration:
         stopped_iterator = True
 
@@ -48,9 +48,9 @@ def intersect_many_postings_lists(postings_lists: list) -> dict:
     """
     # pop the longest element from list of posting_lists
     postings_lists.sort(key=len)
-    ans = postings_lists.pop()  # type: dict
+    ans: dict = postings_lists.pop()
     while ans and postings_lists:
-        poped = postings_lists.pop()  # type: dict
+        poped: dict = postings_lists.pop()
         ans = intersect_postings_lists(ans, poped)
     return ans
 
@@ -62,17 +62,22 @@ def get_tail_for_not_stopped_iter(
     ans: dict,
     left_key: str,
     left_value: int,
+    right_key: str,
+    right_value: int,
 ) -> dict:
     # this function is for OR operator
     # it was written because union function was too complex
     # if one iterator get end of the posting list
     # we need to add tail of other posting list
     if stopped_iterator == left_items_iterator:
-        tail = dict(right_items_iterator)
+        tail: dict = dict(right_items_iterator)
     elif stopped_iterator == right_items_iterator:
-        tail = dict(left_items_iterator)
+        tail: dict = dict(left_items_iterator)
+
     if not (left_key in ans):
         ans[left_key] = left_value
+    if not (right_key in ans):
+        ans[right_key] = right_value
 
     if tail:
         ans.update(tail)
@@ -83,22 +88,22 @@ def union_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     OR operation
     """
-    left_items_iterator = iter(postings_left.items())
-    right_items_iterator = iter(postings_right.items())
-    stopped_iterator = False  # init value for running loop
-    ans = {}  # type:dict
-    left_key = ""
-    left_value = -1
+    left_items_iterator: iter = iter(postings_left.items())
+    right_items_iterator: iter = iter(postings_right.items())
+    stopped_iterator: bool = False  # init value for running loop
+    ans: dict = {}
+    left_key: str = ""
+    left_value: int = -1
 
     # read first items from postings lists:
     try:
-        left_key, left_value = next(left_items_iterator)  # types: str, int
+        left_key, left_value = next(left_items_iterator)
     except StopIteration:
         stopped_iterator = True
         ans = postings_right
 
     try:
-        right_key, right_value = next(right_items_iterator)  # types: str, int
+        right_key, right_value = next(right_items_iterator)
     except StopIteration:
         stopped_iterator = True
         ans = postings_left
@@ -141,6 +146,8 @@ def union_postings_lists(postings_left: dict, postings_right: dict) -> dict:
         ans,
         left_key,
         left_value,
+        right_key,
+        right_value,
     )
     return ans
 
@@ -149,26 +156,26 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
     NOT operation
     """
-    left_key = ""
-    left_value = -1
-    left_items_iterator = iter(postings_left.items())  # type:iter
-    right_items_iterator = iter(postings_right.items())  # type:iter
-    ans = {}  # type: dict
-    stopped_iterator = False  # type:bool
+    left_key: str = ""
+    left_value: int = -1
+    left_items_iterator: iter = iter(postings_left.items())
+    right_items_iterator: iter = iter(postings_right.items())
+    ans: dict = {}
+    stopped_iterator: bool = False
 
     # read first items from postings lists:
     try:
-        left_key, left_value = next(left_items_iterator)  # types: str, int
+        left_key, left_value = next(left_items_iterator)
     except StopIteration:
         stopped_iterator = True
 
     try:
-        right_key, right_value = next(right_items_iterator)  # types: str, int
+        right_key, right_value = next(right_items_iterator)
     except StopIteration:
         stopped_iterator = True
         ans = postings_left
 
-    check_tail_in_left_flag = False  # type:bool
+    check_tail_in_left_flag: bool = False
 
     while not stopped_iterator:
         if left_key == right_key:
@@ -195,7 +202,7 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
                 check_tail_in_left_flag = True
                 break
     # get tail of left postings if right postings ended
-    tail = dict(left_items_iterator)
+    tail: dict = dict(left_items_iterator)
     if (not (left_key in ans)) and check_tail_in_left_flag:
         ans[left_key] = left_value
         # we read item from left dict

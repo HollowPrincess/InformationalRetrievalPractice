@@ -10,7 +10,7 @@ def run_app():
         second_operator third_word etc..."
     )
     print()
-    print("where operators can be: and, or, not, &, |, ~")
+    print("where operators can be: and, or, not")
     print("Сase is not important.")
     print()
     print("Please, write your query:")
