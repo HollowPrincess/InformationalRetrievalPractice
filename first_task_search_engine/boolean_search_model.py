@@ -1,3 +1,7 @@
+from constants import max_doc_id
+import numpy as np
+
+
 def intersect_postings_lists(
     postings_left: dict, postings_right: dict
 ) -> dict:
@@ -156,7 +160,7 @@ def union_postings_lists(postings_left: dict, postings_right: dict) -> dict:
 
 def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     """
-    NOT operation
+    AND NOT operation: substraction right_postings from left_postings
     """
     left_key: str = ""
     left_value: int = -1
@@ -212,3 +216,33 @@ def subtract_postings_lists(postings_left: dict, postings_right: dict) -> dict:
     if tail:
         ans.update(tail)
     return ans
+
+
+def get_negation_from_postings(postings_right: dict) -> dict:
+    """
+    NOT operation
+    """
+    ans: dict = {}
+    prev_key: int = -1
+    sorted_int_keys = np.array(list(postings_right.keys()), dtype=int)
+    sorted_int_keys.sort()
+    for key in sorted_int_keys:
+        if key > prev_key + 1:
+            keys_list: np.array(dtype=str) = np.array(
+                range(prev_key + 1, int(key)), dtype=str
+            )
+            if len(keys_list) > 1:
+                ans.update(dict.fromkeys(keys_list, 0))
+            else:
+                ans[keys_list[0]] = 0
+        prev_key = key
+
+    if max_doc_id > prev_key + 1:
+        ans.update(
+            dict.fromkeys(
+                np.array(range(prev_key + 1, max_doc_id + 1), dtype=str), 0
+            )
+        )
+    elif max_doc_id == prev_key + 1:
+        ans[str(max_doc_id)] = 0
+    return dict(sorted(ans.items()))

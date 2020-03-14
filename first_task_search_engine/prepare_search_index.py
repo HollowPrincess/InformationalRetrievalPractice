@@ -6,11 +6,11 @@ import operator
 import os
 import pickle
 import sys
+import numpy as np
 import pandas as pd
 import ndjson
 from text_preparation import tokenize, lemmatize
-
-const_size_in_bytes: int = 1024 * 1024 * 1
+from constants import const_size_in_bytes
 
 
 def write_dict_to_file(
@@ -167,7 +167,6 @@ def run_index_prep():
 
     for chunk in pd.read_csv(
         "data/prepared_dataset.csv",
-        index_col=0,
         header=None,
         chunksize=10000,
         names=["Text"],
@@ -175,7 +174,9 @@ def run_index_prep():
         chunk: pd.DataFrame(columns=["Text"]) = tokenize(chunk)
         chunk = lemmatize(chunk)
         file_number = SPIMI_invert(chunk, file_number)
+    max_doc_id: int = np.max(list(chunk.index))
     merging_tmp_index(file_number)
+    return max_doc_id
 
 
 if __name__ == "__main__":
@@ -183,4 +184,18 @@ if __name__ == "__main__":
         if not os.path.isdir(folder):
             os.makedirs(folder)
 
-    run_index_prep()
+    max_doc_id = run_index_prep()
+
+    with open("constants.py", "r") as fin, open(
+        "constants_tmp.py", "w"
+    ) as fout:
+        for line in fin:
+            if line.find("max_doc_id") == -1:
+                fout.write(line)
+            else:
+                fout.write("max_doc_id:int = {}\n".format(max_doc_id))
+
+    if os.path.exists("constants.py"):
+        os.remove("constants.py")
+    if os.path.exists("constants_tmp.py"):
+        os.rename("constants_tmp.py", "constants.py")

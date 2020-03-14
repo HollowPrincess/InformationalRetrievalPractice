@@ -50,6 +50,6 @@ if __name__ == "__main__":
             range(20),
         ):
             chunk: pd.DataFrame(columns=["Text"]) = run_prepare_dataset(chunk)
-            chunk.to_csv(prep_file, header=None)
+            chunk.to_csv(prep_file, header=None, index=False)
             if counter == 19:
                 break
