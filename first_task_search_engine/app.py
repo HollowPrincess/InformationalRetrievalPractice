@@ -1,4 +1,6 @@
+import os
 from query_processing import return_documents
+from prepare_embeddings import prepare_embeddings_for_dataset
 
 
 def run_app():
@@ -20,4 +22,7 @@ def run_app():
 
 
 if __name__ == "__main__":
+    data_files = os.listdir("data")
+    if "embeddings.csv" not in data_files:
+        prepare_embeddings_for_dataset()
     run_app()
