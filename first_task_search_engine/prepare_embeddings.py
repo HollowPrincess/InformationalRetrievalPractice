@@ -29,9 +29,9 @@ def prepare_embeddings_for_dataset():
     print("The first run may take several minutes for preparation.")
     data_files = os.listdir("data")
     if "glove.6B.100d.txt" not in data_files:
+        url = "http://files.deeppavlov.ai/embeddings/glove.6B.100d.txt"
         download(
-            "data/glove.6B.100d.txt",
-            source_url="http://files.deeppavlov.ai/embeddings/glove.6B.100d.txt",
+            "data/glove.6B.100d.txt", source_url=url,
         )
 
     tokenizer = NLTKTokenizer()
