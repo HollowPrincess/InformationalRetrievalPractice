@@ -4,11 +4,10 @@ import pandas as pd
 from deeppavlov.core.data.utils import download
 from deeppavlov.models.embedders.glove_embedder import GloVeEmbedder
 from deeppavlov.models.tokenizers.nltk_tokenizer import NLTKTokenizer
+from nptyping import Array
 
 
-def cosine_similarity(
-    x: np.array([], dtype=float), y: np.array([], dtype=float)
-) -> float:
+def cosine_similarity(x: Array[float], y: Array[float]) -> float:
     """Return the cosine similarity of two vectors."""
     numerator: float = sum(np.multiply(x, y))
     denominator: float = np.sqrt(
@@ -17,13 +16,11 @@ def cosine_similarity(
     return numerator / denominator
 
 
-def prepare_embeddings_for_query(query: str) -> np.array([], dtype=float):
+def prepare_embeddings_for_query(query: str) -> Array[float]:
     """Return an embedding for query string."""
     tokenizer = NLTKTokenizer()
     embedder = GloVeEmbedder(load_path="data/glove.6B.100d.txt", pad_zero=True)
-    embed_query: np.array([], dtype=float) = embedder(
-        tokenizer([query]), mean=True
-    )[0]
+    embed_query: Array[float] = embedder(tokenizer([query]), mean=True)[0]
     return embed_query
 
 
@@ -47,7 +44,7 @@ def prepare_embeddings_for_dataset():
             chunksize=10000,
             names=["Text"],
         ):
-            embeddings: np.array(dtype=float) = embedder(
+            embeddings: Array[float] = embedder(
                 tokenizer(chunk.loc[:, "Text"]), mean=True
             )
             np.savetxt(emb_file, embeddings, delimiter=",")
