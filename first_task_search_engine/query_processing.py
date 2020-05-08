@@ -15,7 +15,6 @@ import os
 import pandas as pd
 import pickle
 import re
-from typing import Union
 from nptyping import Array
 from constants import (
     const_size_in_bytes,
@@ -120,11 +119,11 @@ def return_documents(query: str):
         [query.index(x) for x in query if x.find("not") != -1]
     )
     not_indexes = np.append(not_indexes, not_indexes + 1)
-    query_for_embed: Union[Array[str], str] = np.array(query)
+    query_for_embed: Array[str] = np.array(query)
     if len(not_indexes) > 0:
         query_for_embed = np.delete(query_for_embed, not_indexes)
     query_for_embed = query_for_embed[::2]
-    query_for_embed = " ".join(query_for_embed)
+    query_for_embed: str = " ".join(query_for_embed)
     # get embedding of importance words in query:
     query_embed: Array[float] = prepare_embeddings_for_query(query_for_embed)
 

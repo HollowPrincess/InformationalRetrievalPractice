@@ -50,9 +50,9 @@ def run_app():
 
 
 if __name__ == "__main__":
-    data_files = os.listdir("data")
     # if there are not documents embeddings in the data folder
     # then get them for dataset before running application
-    if "embeddings.csv" not in data_files:
+
+    if not os.access("data/embeddings.csv", os.R_OK):
         prepare_embeddings_for_dataset()
     run_app()

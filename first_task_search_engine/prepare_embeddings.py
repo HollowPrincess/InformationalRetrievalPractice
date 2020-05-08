@@ -47,7 +47,7 @@ def prepare_embeddings_for_dataset():
             embeddings: Array[float] = embedder(
                 tokenizer(chunk.loc[:, "Text"]), mean=True
             )
-            np.savetxt(emb_file, embeddings, delimiter=",")
+            np.savetxt(emb_file, embeddings, delimiter=",", fmt="%1.5f")
 
 
 if __name__ == "__main__":
