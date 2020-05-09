@@ -4,6 +4,10 @@ from boolean_search_model import (
     subtract_postings_lists,
     get_negation_from_postings,
 )
+from prepare_embeddings import (
+    prepare_embeddings_for_query,
+    cosine_similarity,
+)
 from collections import deque
 from nltk.stem import WordNetLemmatizer
 import numpy as np
@@ -11,6 +15,7 @@ import os
 import pandas as pd
 import pickle
 import re
+from nptyping import Array
 from constants import (
     const_size_in_bytes,
     TOP_DOCS_NUMBER,
@@ -23,9 +28,7 @@ index_slices_words: list = [word[:-4] for word in files]
 
 
 def get_postings(word: str) -> dict:
-    """
-    This function gets posting list for a word from the index
-    """
+    """Returns postings list for a word."""
     postings: dict = {}
     for index_word in index_slices_words:
         if word < index_word:
@@ -45,9 +48,7 @@ def get_postings(word: str) -> dict:
 def get_postings_with_query(
     query_words: deque, query_operations: deque
 ) -> dict:
-    """
-    This function gets posting list which is a result of operations with words.
-    """
+    """Returns postings list which is a result of query."""
 
     multiple_and_postings: list = []
     empty_postings_in_multi_end: bool = False
@@ -104,10 +105,27 @@ def get_postings_with_query(
 
 
 def return_documents(query: str):
+    """Returns top documents for a query."""
     query = query.strip().lower()
     query = re.sub(r"\W", " ", query)
     query = re.sub(r" +", " ", query)
+    # for vector model we need to take documents which contains all words
+    # so we replace and-query by or-query:
+    query = re.sub(r" and ", " or ", query)
     query = query.split(" ")
+
+    # prepare query for makng embedding: replace not words and key words:
+    not_indexes: Array[int] = np.array(
+        [query.index(x) for x in query if x.find("not") != -1]
+    )
+    not_indexes = np.append(not_indexes, not_indexes + 1)
+    query_for_embed: Array[str] = np.array(query)
+    if len(not_indexes) > 0:
+        query_for_embed = np.delete(query_for_embed, not_indexes)
+    query_for_embed = query_for_embed[::2]
+    query_for_embed: str = " ".join(query_for_embed)
+    # get embedding of importance words in query:
+    query_embed: Array[float] = prepare_embeddings_for_query(query_for_embed)
 
     query_words: deque = deque(query[::2])
     query_operations: deque = deque(query[1::2])
@@ -131,15 +149,24 @@ def return_documents(query: str):
             sorted(postings.items(), key=lambda x: x[1], reverse=True)
         )
         # sort documents by rank
-
         docs_ids = np.array(list(docs_dict.keys()), dtype=int)
         print("Documents num:", len(docs_ids))
-        docs_ids = docs_ids[:TOP_DOCS_NUMBER]
-        docs_ranks = np.array(list(docs_dict.values()), dtype=int)[
+
+        ranks = np.array([], dtype=float)
+        for docID in docs_ids:
+            elem_emb: Array[float] = pd.read_csv(
+                "data/embeddings.csv", skiprows=docID, nrows=1, header=None,
+            ).values[0]
+            ranks = np.append(ranks, cosine_similarity(elem_emb, query_embed))
+        ranks = pd.DataFrame({"id": docs_ids, "rank": ranks})
+        ranks = ranks.sort_values(by="rank", ascending=False).iloc[
             :TOP_DOCS_NUMBER
         ]
 
-        print("Top {} documents: \n".format(len(docs_ids)))
+        docs_ids: Array[int] = ranks.loc[:, "id"].values
+        docs_ranks: Array[float] = ranks.loc[:, "rank"].values
+
+        print("Top {} documents: \n".format(TOP_DOCS_NUMBER))
         for docID, rank in zip(docs_ids, docs_ranks):
             elem = pd.read_csv(
                 "data/prepared_dataset.csv",
@@ -161,7 +188,7 @@ def return_documents(query: str):
                     print(word, "is in:")
                     print(part)
                 else:
-                    print("This document don't contain ", word)
+                    print("This document doesn't contain ", word)
             print()
 
     else:
