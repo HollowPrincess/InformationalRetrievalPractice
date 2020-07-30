@@ -68,7 +68,7 @@ toml==0.10.0
 tqdm==4.41.1
 typish==1.6.0
 urllib3==1.25.9
-uvicorn==0.11.1
+uvicorn==0.11.7
 uvloop==0.14.0
 virtualenv==20.0.8
 websockets==8.1
