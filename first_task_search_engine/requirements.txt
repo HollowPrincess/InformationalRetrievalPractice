@@ -52,7 +52,7 @@ pypi-kenlm==0.1.20190403
 pyTelegramBotAPI==3.6.7
 python-dateutil==2.8.1
 pytz==2019.3
-PyYAML==5.3
+PyYAML==5.4
 regex==2020.4.4
 requests==2.22.0
 ruamel.yaml==0.15.100
